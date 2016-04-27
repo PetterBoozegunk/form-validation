@@ -31,7 +31,23 @@
             </label>
 
             <div>
-                <button type="submit" disabled="disabled">button[type=submit]</button>
+                <button type="submit">button[type=submit]</button>
+            </div>
+
+        </fieldset>
+    </form>
+    
+    <form action="/" data-validation="on" autocomplete="off">
+        <fieldset>
+            <legend>Basic "email" validation test</legend>
+
+            <label>
+                <span>[input=email]</span>
+                <input type="email" name="email1"/>
+            </label>
+
+            <div>
+                <button type="submit">button[type=submit]</button>
             </div>
 
         </fieldset>

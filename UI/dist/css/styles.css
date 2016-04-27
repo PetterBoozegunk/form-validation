@@ -113,6 +113,9 @@ form label {
   display: block;
   margin-bottom: 15px;
 }
+form label > span:first-child {
+  display: block;
+}
 form label.error {
   color: red;
 }
