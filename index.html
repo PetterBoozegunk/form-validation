@@ -8,6 +8,22 @@
 <body>
     <h1>Form validation</h1>
     
+    <form action="/" data-validation="on">
+        <fieldset>
+            <legend>Basic formvalidation test</legend>
+            
+            <label>
+                <span>Required [input=text]</span>
+                <input type="text" name="req0" required="required"/>
+            </label>
+
+        </fieldset>
+        
+        <div>
+            <button type="submit" disabled="disabled">Send</button>
+        </div>
+    </form>
+    
     <script src="UI/dist/js/scripts.js"></script>
 </body>
 </html>

@@ -9209,4 +9209,523 @@ return jQuery;
 
 }));
 
+/*jslint browser: true */
+
+(function (window) {
+    "use strict";
+
+    var $ = window.jQuery,
+        Handlebars = window.Handlebars,
+
+        localUtil = {
+            trim: function (str) {
+                var ret = str;
+
+                if (typeof str === "string") {
+                    ret = str.replace(/(^\s+|\s+$)/g, "");
+                }
+
+                return ret;
+            },
+            getDir: function (sortOb) {
+                var dir = sortOb.dir || "desc";
+
+                return dir;
+            },
+            getStartRange: function (sortOb) {
+                var startRange = sortOb.startRange || 0;
+
+                return startRange;
+            },
+            getEndRange: function (sortOb, array) {
+                var endRange = sortOb.endRange || array.length;
+
+                return endRange;
+            },
+            setSortObj: function (sortObj, array) {
+                var that = this,
+                    sortOb = sortObj || {};
+
+                sortOb.dir = that.getDir(sortOb);
+                sortOb.startRange = that.getStartRange(sortOb);
+                sortOb.endRange = that.getEndRange(sortOb, array);
+
+                return sortOb;
+            },
+            getSorted: function (a, b) {
+                var ret = 0;
+
+                if (a < b) {
+                    ret = -1;
+                } else if (a > b) {
+                    ret = 1;
+                }
+
+                return ret;
+            },
+            setDir: function (sortedArray, dir) {
+                if (dir === "asc") {
+                    sortedArray.reverse();
+                }
+
+                return sortedArray;
+            },
+            getPropertyName: function (array, propertyName) {
+                var propName = propertyName || Object.keys(array[0])[0];
+
+                return propName;
+            },
+            getHbSource: {
+                "object": function (templateSelectorOrObject) {
+                    return templateSelectorOrObject;
+                },
+                "default": function (templateSelectorOrObject) {
+                    return $(templateSelectorOrObject);
+                }
+            }
+        },
+
+        util = {
+            returnString: function (val) {
+                return val ? val.toString() : "";
+            },
+            returnObject: function (obj) {
+                return (!obj) ? {} : obj;
+            },
+            stopDefault: function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            },
+            trim: localUtil.trim,
+            capitalizeFirst: function (str) {
+                var first = str.substring(0, 1),
+                    rest = str.substring(1, str.length);
+
+                return first.toUpperCase() + rest;
+            },
+            logMulti: function (logMultiObj) {
+                Object.keys(logMultiObj).forEach(function (item) {
+                    window.console.log(item, " = ", logMultiObj[item]);
+                });
+                window.console.log(" --------------- ");
+            },
+            copyObjProps: function (fromObj, toObj) {
+                Object.keys(fromObj).forEach(function (key) {
+                    toObj[key] = fromObj[key];
+                });
+
+                return toObj;
+            },
+
+            sort: function (array, sortBy, dir) {
+                var sortedArray = array.slice(0, array.length);
+
+                sortedArray.sort(function (a, b) {
+                    return localUtil.getSorted(localUtil.trim(a[sortBy]), localUtil.trim(b[sortBy]));
+                });
+
+                return localUtil.setDir(sortedArray, dir);
+            },
+
+            getHbSource: function (templateSelectorOrObject) {
+                var argType = typeof templateSelectorOrObject,
+                    getSrcElem = localUtil.getHbSource[argType] || localUtil.getHbSource["default"],
+                    srcElem = getSrcElem(templateSelectorOrObject);
+
+                return srcElem.html();
+            },
+            getHbTemplate: function (templateId, context) {
+                var source = this.getHbSource(templateId),
+                    template = Handlebars.compile(source),
+                    ctx = context || {},
+                    html = template(ctx);
+
+                return html;
+            },
+            getPaginationValue: function (table, name) {
+                var re = new RegExp(name + "=\\d+", "g"),
+                    hasValue = (table.attr("data-ajax-pagination") || "").replace(/\s/g, "").match(re),
+                    dataArray = table.data("array") || [],
+                    value = hasValue ? parseInt(hasValue.toString().replace(/\D+/g, ""), 10) : dataArray.length;
+
+                return value;
+            },
+            replaceUrlHashValue: function (hashName, newHashValue) {
+                var currentFullHash = document.location.hash,
+                    currentValueRe = new RegExp("(" + hashName + "\\=" + ")([\\w]+)", "g"),
+                    newHash = hashName + "=" + newHashValue;
+
+                if (!currentFullHash) {
+                    document.location.hash = newHash;
+                } else if (!currentFullHash.match(currentValueRe)) {
+                    document.location.hash += "&amp;" + newHash;
+                } else {
+                    document.location.hash = currentFullHash.replace(currentValueRe, newHash);
+                }
+            },
+            matches: {
+                "^": function (item, searchProp, value) {
+                    var matchStart = new RegExp("^" + decodeURIComponent(value), "i"),
+                        matches = matchStart.test(item[searchProp]);
+
+                    return matches;
+                },
+                "default": function (item, searchProp, value) {
+                    return (item[searchProp].toString() === value || value === "");
+                }
+            },
+            allMatch: function (item, searchArray, filterRe) {
+                var doesMatch = 0,
+                    check = util.matches[filterRe] || util.matches["default"];
+
+                searchArray.forEach(function (search) {
+                    var split = search.split("="),
+                        searchProp = split[0],
+                        value = split[1].replace(/\+/, " ");
+
+                    if (check(item, searchProp, value)) {
+                        doesMatch += 1;
+                    }
+                });
+
+                return (doesMatch === searchArray.length);
+            },
+            ajaxDataSearch: function (data, searchQuery, filterRe) {
+                var searchedArray = [],
+                    searchArray = searchQuery.split("&");
+
+                data.forEach(function (item) {
+                    if (util.allMatch(item, searchArray, filterRe)) {
+                        searchedArray.push(item);
+                    }
+                });
+
+                return searchedArray;
+
+            },
+            ajaxDataSort: function (array, propertyName, sortObj) {
+                var propName = localUtil.getPropertyName(array, propertyName),
+                    sortO = localUtil.setSortObj(sortObj, array),
+                    sortArray = util.sort(array, propName, sortO.dir),
+                    arraySlice = sortArray.slice(sortO.startRange, sortO.endRange);
+
+                return arraySlice;
+            }
+        };
+
+    window.util = util;
+
+}(window));
+/*jslint browser: true */
+(function (window) {
+    "use strict";
+
+    var $ = window.jQuery,
+
+        util = window.util,
+
+        validation = {
+            required: {
+                "input": {
+                    "checkbox": function () {
+                        var isRequired = this.hasAttribute("required"),
+                            t = $(this),
+                            isValid = isRequired ? t.prop("checked") : true;
+
+                        return isValid;
+                    }
+                },
+                "default": function () {
+                    var isRequired = this.hasAttribute("required"),
+                        val = $(this).val(),
+                        isValid = isRequired ? (val !== "") : true;
+
+                    return isValid;
+                },
+                checkTagType: function (tagName, type) {
+                    return (type && validation.required[tagName] && validation.required[tagName][type]);
+                },
+                getValidationFunc: function (tagName, type) {
+                    return validation.required.checkTagType(tagName, type) ? validation.required[tagName][type] : validation.required["default"];
+                },
+                getType: function () {
+                    var tagName = this.tagName.toLowerCase(),
+                        type = this.type,
+                        validationFunc = validation.required.getValidationFunc(tagName, type);
+
+                    return validationFunc;
+                }
+            },
+            types: {
+                "required": function () {
+                    var requiredValidationFunc = validation.required.getType.call(this),
+                        isValid = requiredValidationFunc.call(this);
+
+                    return isValid;
+                },
+                "email": function () {
+                    // regexp found here: http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+                    var isEmailInput = (this.type && this.type.toLowerCase() === "email"),
+                        val = util.returnString($(this).val()),
+                        looksLikeEmail = val.match(/[a-z0-9!#$%&'*+\/=?\^_`{|}~\-]+(?:\.[a-z0-9!#$%&'*+\/=?\^_`{|}~\-]+)*@(?:[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?/),
+                        isValid = (isEmailInput && val) ? looksLikeEmail : true;
+
+                    return isValid;
+                },
+                "pattern": function () {
+                    //  text, search, tel, url, email or password
+                    var type = util.returnString(this.type).toLowerCase(),
+                        canHavePattern = /^(text|search|tel|url|email|password)$/.test(type),
+                        pattern = this.getAttribute("pattern"),
+                        val = $(this).val(),
+                        isValid = (canHavePattern && pattern && val) ? (new RegExp("^" + pattern + "$")).test(val) : true;
+
+                    return isValid;
+                },
+                "personnummer": function () {
+                    var t = $(this),
+                        isPersonnummer = t.attr("data-type") === "personnummer",
+                        isValid = isPersonnummer ? t.trigger("personnummer:check").data("isValid") : true;
+
+                    return isValid;
+                }
+            },
+            getFilterFunc: function (type, validOrNot) {
+                return function () {
+                    var validity = (validOrNot === "valid") ? validation.types[type].call(this) : !validation.types[type].call(this);
+
+                    return validity;
+                };
+            },
+            getChangeType: function (previousValidityState) {
+                return (!previousValidityState) ? "set" : "change";
+            },
+            triggerValidityEvent: function (t, previousValidityState, validityState) {
+                var changeTyp = validation.getChangeType(previousValidityState);
+
+                t.data("validity", validityState);
+
+                if (validityState !== previousValidityState) {
+                    t.trigger("validity:" + changeTyp);
+                    t.trigger("validity:" + validityState);
+                }
+            },
+            setValidityState: function (validityState) {
+                var t = $(this),
+                    previousValidityState = t.data("validity");
+
+                validation.triggerValidityEvent(t, previousValidityState, validityState);
+            },
+            isDuplicate: function (elem, elems) {
+                var isDuplicate = false;
+
+                elems.each(function () {
+                    if (this === elem) {
+                        isDuplicate = true;
+                    }
+                });
+
+                return isDuplicate;
+            },
+            removeDuplicates: function (elems1, elems2, elemTemp) {
+                elems1.each(function () {
+                    var isDuplicate = validation.isDuplicate(this, elems2);
+
+                    if (!isDuplicate) {
+                        elemTemp.push(this);
+                    }
+                });
+
+                return $(elemTemp);
+            },
+            removeDuplicatesFromArray: function (arr, newArray) {
+                arr.forEach(function (item) {
+                    if ($.inArray(item, newArray) === -1) {
+                        newArray.push(item);
+                    }
+                });
+
+                return newArray;
+            },
+            getElems: function (elems, elemsArray, validOrNot) {
+                Object.keys(validation.types).forEach(function (type) {
+                    var filterFunc = validation.getFilterFunc.call(this, type, validOrNot);
+
+                    elemsArray = elemsArray.concat(elems.filter(filterFunc).toArray());
+                });
+
+                return $(validation.removeDuplicatesFromArray(elemsArray, []));
+            },
+            setSubmitButtonState: function (form, inValidElems) {
+                var disableSubmitButton = (inValidElems.length > 0),
+                    submitButton = form.find("[type=submit], [data-type=submit]"),
+                    removeAddAttr = disableSubmitButton ? "attr" : "removeAttr";
+
+                submitButton.prop("disabled", disableSubmitButton);
+                submitButton[removeAddAttr]("disabled", "disabled");
+            },
+            setValidityStates: function (form, validElems, inValidElems) {
+                validElems.each(validation.setValidityState, ["valid"]);
+                inValidElems.each(validation.setValidityState, ["notValid"]);
+
+                validation.setSubmitButtonState(form, inValidElems);
+            },
+            checkForm: function () {
+                var form = $(this),
+                    elems = form.find("input, textarea, select"),
+                    validElems = validation.getElems(elems, [], "valid"),
+                    inValidElems = validation.getElems(elems, [], "notValid");
+
+                validElems = validation.removeDuplicates(validElems, inValidElems, []);
+
+                validation.setValidityStates(form, validElems, inValidElems);
+            },
+            setError: function () {
+                var t = $(this),
+                    label = t.closest("label"),
+                    addRemove = (t.data("validity") === "valid") ? "remove" : "add";
+
+                label[addRemove + "Class"]("error");
+            },
+            bindEvents: function () {
+                var body = $("body");
+
+                body.on("validity:valid", "form[data-validation=on] input, form[data-validation=on] textarea, form[data-validation=on] select", validation.setError);
+
+                body.on("submit click keyup change input blur validation:checkForm", "form[data-validation=on]", validation.checkForm);
+
+                body.on("blur", "form[data-validation=on] input, form[data-validation=on] textarea", validation.setError);
+                body.on("change validity:change", "form[data-validation=on] select", validation.setError);
+            }
+        };
+
+    validation.bindEvents();
+
+}(window));
+/*jslint browser: true */
+
+(function (window) {
+    "use strict";
+
+    var $ = window.jQuery,
+
+        persnr = {
+            strToNumber: function (str) {
+                return parseFloat(str);
+            },
+            getCentury: function (persnrStr) {
+                var nowYear = persnr.strToNumber(persnr.year.toString().substring(2, 4)),
+                    century = (persnr.strToNumber(persnrStr.substring(0, 2)) < nowYear) ? "20" : "19";
+
+                return century + persnrStr;
+            },
+            setCentury: function (persnrStr) {
+                var firstTwo19Or20 = /^(19|20)/.test(persnrStr);
+
+                if (persnrStr.length === 10 && !firstTwo19Or20) {
+                    persnrStr = persnr.getCentury(persnrStr);
+                }
+
+                return persnrStr;
+            },
+            setTwelveDigits: function (e, orgE) {
+                var persnrStr = this.value,
+                    twelveDigitsPersnr = persnr.setCentury(persnrStr.replace(/\D/g, "").substring(0, 12));
+
+                if (e && (!orgE || orgE.keyCode !== 8)) {
+                    this.value = twelveDigitsPersnr;
+                }
+
+                return twelveDigitsPersnr;
+            },
+            getValidYear: function (yearStr) {
+                var yearNbr = persnr.strToNumber(yearStr),
+                    validYear = /^(19|20)/.test(yearStr);
+
+                return validYear ? yearNbr : false;
+            },
+            getValidMonth: function (monthNbr) {
+                return (monthNbr > -1 && monthNbr < 12) ? monthNbr : false;
+            },
+            getValidDate: function (yearNbr, monthNbr, dayStr) {
+                var dayNbr = persnr.strToNumber(dayStr),
+                    testDate = new Date(yearNbr, monthNbr, dayNbr),
+                    testDay = testDate.getDate();
+
+                return (testDay === dayNbr) ? dayNbr : false;
+            },
+            checkDateIsInThePast: function (dateIsValid) {
+                var now = persnr.now;
+
+                return dateIsValid ? (dateIsValid < now) : false;
+            },
+            checkDateIsValid: function (pnrStr) {
+                var dateStr = pnrStr.replace(/\d{4}$/, ""),
+
+                    year = persnr.getValidYear(dateStr.substring(0, 4)),
+                    month = persnr.getValidMonth(persnr.strToNumber(dateStr.substring(4, 6)) - 1),
+                    day = persnr.getValidDate(year, month, dateStr.substring(6, 8)),
+
+                    dateIsValid = (year && (typeof month === "number") && day) ? new Date(year, month, day) : false;
+
+                return persnr.checkDateIsInThePast(dateIsValid);
+            },
+            checkLastDigits: function (pnrStr) {
+                var checkStr = pnrStr.toString().substring(2, 12).split(""),
+                    multiplicator = 2,
+                    temp,
+                    sum = 0,
+                    i,
+                    l = checkStr.length;
+
+                for (i = 0; i < l; i += 1) {
+                    temp = checkStr[i] * multiplicator;
+
+                    if (temp > 9) {
+                        temp -= 9;
+                    }
+
+                    sum += temp;
+
+                    multiplicator = (multiplicator === 1 ? 2 : 1);
+                }
+
+                return (sum % 10) === 0;
+            },
+            check: function (e, orgE) {
+                var pnrStr = persnr.setTwelveDigits.call(this, e, orgE),
+                    dateIsValid = persnr.checkDateIsValid(pnrStr),
+                    lastDigits = persnr.checkLastDigits(pnrStr),
+                    isValid = dateIsValid ? lastDigits : false;
+
+                $(this).data("isValid", isValid);
+
+                return isValid;
+            },
+            formatDateProp: function (dateProp) {
+                return dateProp.replace(/(^get|Full)/g, "").toLowerCase();
+            },
+            setNow: function () {
+                var now = new Date(),
+                    setDateProps = ["getFullYear", "getMonth", "getDate"];
+
+                setDateProps.forEach(function (dateProp) {
+                    persnr[persnr.formatDateProp(dateProp)] = now[dateProp]();
+                });
+
+                persnr.now = now;
+            },
+
+            bindEvents: function () {
+                $("body").on("personnummer:check", "input", persnr.check);
+            },
+            init: function () {
+                persnr.setNow();
+                persnr.bindEvents();
+            }
+        };
+
+    persnr.init();
+
+}(window));
 //# sourceMappingURL=scripts.js.map
