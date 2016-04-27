@@ -76,6 +76,21 @@
         </fieldset>
     </form>
     
+    <form action="/" data-validation="on" autocomplete="off">
+        <fieldset>
+            <legend>Basic "(swedish) personnummer" validation test</legend>
+
+            <label>
+                <span>[date-type=personnummer]</span>
+                <input type="text" name="personnummer1" data-type="personnummer" />
+            </label>
+
+            <div>
+                <button type="submit">button[type=submit]</button>
+            </div>
+        </fieldset>
+    </form>
+    
     <script src="UI/dist/js/scripts.js"></script>
 </body>
 </html>
