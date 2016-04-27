@@ -1,0 +1,30 @@
+﻿form {
+    @errorColor: red;
+
+    width: 25%;
+    float: left;
+
+    box-sizing: border-box;
+
+    fieldset {
+        padding: @halfGutter;
+    }
+
+    label {
+        display: block;
+        margin-bottom: @halfGutter;
+
+        & > span:first-child {
+            display: block;
+        }
+
+        &.error {
+            color: @errorColor;
+
+            input,
+            select {
+                border: solid 1px @errorColor;
+            }
+        }
+    }
+}

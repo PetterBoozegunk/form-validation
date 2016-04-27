@@ -1,0 +1,22 @@
+﻿.opacity(@opacity: 0) {
+    @ieOpacity: (@opacity * 100);
+    @ms-filter: ~"progid:DXImageTransform.Microsoft.Alpha(Opacity=@{ieOpacity})";
+
+    //-moz-opacity: @opacity;
+    //-khtml-opacity: @opacity;
+    opacity: @opacity;
+
+    -ms-filter: "@{ms-filter}";  //* IE 8 */
+    //filter: ~"alpha(opacity = @{ieOpacity})";  //* IE 5-7 */
+}
+
+.ellipsis() { 
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.noEllipsis() { 
+    overflow: visible;
+    white-space: normal;
+}

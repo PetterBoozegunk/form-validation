@@ -4,8 +4,11 @@
 
     var $ = window.jQuery,
 
-        util = window.util,
-
+        util = {
+            returnString: function (val) {
+                return val ? val.toString() : "";
+            }
+        },
         validation = {
             required: {
                 "input": {

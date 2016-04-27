@@ -53,5 +53,3 @@ node_modules/
 report/
 *.map
 bat.*.*
-gulp/
-less/

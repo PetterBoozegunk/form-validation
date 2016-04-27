@@ -1,0 +1,47 @@
+/// <reference path="../vars/vars.less" />
+/// <reference path="../mixins/static.mixins.less" />
+/// <reference path="../mixins/mixins.less" />
+
+/*.col,
+.row {
+    box-sizing: border-box;
+    min-height: 1px;
+}
+
+.col {
+    float: left;
+    border: solid @halfGutter rgba(255, 255, 255, 0.001);
+    border-width: 0 @halfGutter;
+}
+
+.row {
+    zoom: 1;
+    clear: both;
+
+    &:before,
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+.colPush(@nbrCols: 1, @parentColSpan: @nbrColumns) {
+    @singleColWidth: (100 / @parentColSpan);
+    @currentWidth: unit(@singleColWidth * @nbrCols, %);
+
+    margin-left: @currentWidth;
+}
+
+.colSpan(@nbrCols: 1, @parentColSpan: @nbrColumns) {
+
+    @singleColWidth: (100 / @parentColSpan);
+    @currentWidth: unit(@singleColWidth * @nbrCols, %);
+
+    width: @currentWidth;
+}
+
+.outerGridWrapRow {
+    margin-right: ~"-@{halfGutter}";
+    margin-left: ~"-@{halfGutter}";
+}*/
