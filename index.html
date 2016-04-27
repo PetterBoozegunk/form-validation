@@ -33,7 +33,6 @@
             <div>
                 <button type="submit">button[type=submit]</button>
             </div>
-
         </fieldset>
     </form>
     
@@ -49,7 +48,31 @@
             <div>
                 <button type="submit">button[type=submit]</button>
             </div>
+        </fieldset>
+    </form>
+    
+    <form action="/" data-validation="on" autocomplete="off">
+        <fieldset>
+            <legend>Basic "patters" validation test</legend>
 
+            <label>
+                <span>[input=text] [pattern="\d{3}"] (three digits)</span>
+                <input type="text" name="pattern0" pattern="\d{3}" />
+            </label>
+
+            <label>
+                <span>[input=text] [pattern="[a-z]+"] (only lowercase latin letters, no special characters)</span>
+                <input type="text" name="pattern1" pattern="[a-z]+" />
+            </label>
+
+            <label>
+                <span>[input=text] [pattern="\d{3}(\s)?\d{2}"] (Swedish zipcode format)</span>
+                <input type="text" name="pattern2" pattern="\d{3}(\s)?\d{2}" />
+            </label>
+
+            <div>
+                <button type="submit">button[type=submit]</button>
+            </div>
         </fieldset>
     </form>
     
