@@ -1,0 +1,30 @@
+{
+    "name": "Form-validation",
+    "version": "0.1.0",
+    "author": "Petter Ahlberg",
+    "description": "Gulp workflow",
+    "repository": " ",
+    "devDependencies": {
+        "browser-sync": "^2.11.1",
+        "gulp": "^3.9.0",
+        "gulp-concat": "^2.6.0",
+        "gulp-js-prettify": "^0.1.0",
+        "gulp-jslint": "^0.2.2",
+        "gulp-less": "^3.0.5",
+        "gulp-load-plugins": "^1.2.0",
+        "gulp-pleeease": "^2.0.2",
+        "gulp-plumber": "^1.0.1",
+        "gulp-remove-empty-lines": "0.0.2",
+        "gulp-rimraf": "^0.2.0",
+        "gulp-shell": "^0.5.2",
+        "gulp-shorthand": "^1.1.0",
+        "gulp-sourcemaps": "^1.6.0",
+        "gulp-strip-css-comments": "^1.2.0",
+        "gulp-strip-debug": "^1.1.0",
+        "gulp-uglify": "^1.5.1",
+        "lazypipe": "^1.0.1",
+        "less-plugin-glob": "^1.1.1",
+        "lodash": "^4.0.1",
+        "plato": "^1.5.0"
+    }
+}

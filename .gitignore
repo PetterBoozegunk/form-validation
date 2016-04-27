@@ -45,3 +45,13 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# =========================
+# Node/gulp related stuff
+# =========================
+node_modules/
+report/
+*.map
+bat.*.*
+gulp/
+less/
