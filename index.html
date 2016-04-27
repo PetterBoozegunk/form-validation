@@ -8,20 +8,33 @@
 <body>
     <h1>Form validation</h1>
     
-    <form action="/" data-validation="on">
+    <form action="/" data-validation="on" autocomplete="off">
         <fieldset>
-            <legend>Basic formvalidation test</legend>
+            <legend>Basic "required" validation test</legend>
             
             <label>
                 <span>Required [input=text]</span>
                 <input type="text" name="req0" required="required"/>
             </label>
+            
+            <label>
+                <input type="checkbox" name="req1" required="required" />
+                <span>Required [input=checkbox]</span>
+            </label>
+            
+            <label>
+                <span>Required select</span>
+                <select name="req2" required="required">
+                    <option value=""> -- empty -- </option>
+                    <option value="notEmpty">notEmpty</option>
+                </select>
+            </label>
+
+            <div>
+                <button type="submit" disabled="disabled">button[type=submit]</button>
+            </div>
 
         </fieldset>
-        
-        <div>
-            <button type="submit" disabled="disabled">Send</button>
-        </div>
     </form>
     
     <script src="UI/dist/js/scripts.js"></script>

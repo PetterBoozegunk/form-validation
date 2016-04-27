@@ -106,4 +106,18 @@ body {
 .colSpan12 {
   width: 100%;
 }
+form fieldset {
+  padding: 15px;
+}
+form label {
+  display: block;
+  margin-bottom: 15px;
+}
+form label.error {
+  color: red;
+}
+form label.error input,
+form label.error select {
+  border: solid 1px red;
+}
 /*# sourceMappingURL=styles.css.map */
